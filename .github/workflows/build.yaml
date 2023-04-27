@@ -34,12 +34,11 @@ jobs:
       - run: pnpm exec nx run-many -t build --parallel=3
       - run: pnpm exec nx run-many -t docker-build --parallel=3
 
-      - name: Export image
-        run: |
-          docker image ls --format '{{.Repository}}' |
-          awk '$1 ~ /^ *mcu-movies/' |
-          sed -i 's/\//-/g' |
-          xargs -I {} docker save {} -o {}.tar
+      - run: |
+          for image in $(docker images --format "{{.Repository}}" | grep mcu-movies); do
+            name = $(echo $image | sed 's/\//-/g')
+            docker save $image -o $name.tar
+          done
       # loop for every tar
       - name: Upload image
         uses: actions/upload-artifact@v2
