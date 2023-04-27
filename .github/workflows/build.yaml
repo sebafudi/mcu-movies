@@ -45,3 +45,21 @@ jobs:
           name: images
           path: |
             *.tar
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download images
+        uses: actions/download-artifact@v3
+        with:
+          name: images
+          path: images
+      - name: Upload images to host
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          source: images
+          target: ~/docker/mcu-movies.sbfd.me
