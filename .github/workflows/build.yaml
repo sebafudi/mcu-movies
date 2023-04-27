@@ -1,0 +1,45 @@
+name: CI/CD
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "7"
+
+      - uses: nrwl/nx-set-shas@v3
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - run: pnpm exec nx format:check
+      - run: pnpm exec nx affected -t lint --parallel=3
+      - run: pnpm exec nx affected -t test --parallel=3 --configuration=ci
+      - run: pnpm exec nx affected -t build --parallel=3
+      - run: pnpm exec nx affected -t docker-build --parallel=3
+
+      - name: Export image
+        run: docker image ls --format '{{.Names}}' | xargs -I {} docker save {} -o {}.tar
+      # loop for every tar
+      - name: Upload image
+        uses: actions/upload-artifact@v2
+        with:
+          name: image
+          path: |
+            *.tar
