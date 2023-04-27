@@ -23,7 +23,7 @@ jobs:
         with:
           version: "7"
 
-      - uses: nrwl/nx-set-shas@v3
+      # - uses: nrwl/nx-set-shas@v3
 
       - name: Install dependencies
         run: pnpm install
