@@ -63,3 +63,14 @@ jobs:
           key: ${{ secrets.KEY }}
           source: images/*.tar
           target: ~/docker/mcu-movies.sbfd.me
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          script: |
+            ~/play.sh 
+            deploy-docker
+            -e DOMAIN=mcu-movies.sbfd.me
