@@ -29,13 +29,13 @@ jobs:
         run: pnpm install
 
       - run: pnpm exec nx format:check
-      - run: pnpm exec nx affected -t lint --parallel=3
-      - run: pnpm exec nx affected -t test --parallel=3 --configuration=ci
-      - run: pnpm exec nx affected -t build --parallel=3
-      - run: pnpm exec nx affected -t docker-build --parallel=3
+      - run: pnpm exec nx run-many -t lint --parallel=3
+      - run: pnpm exec nx run-many -t test --parallel=3 --configuration=ci
+      - run: pnpm exec nx run-many -t build --parallel=3
+      - run: pnpm exec nx run-many -t docker-build --parallel=3
 
       - name: Export image
-        run: docker image ls --format '{{.Names}}' | xargs -I {} docker save {} -o {}.tar
+        run: docker image ls --format '{{.Repository}}' | xargs -I {} docker save {} -o {}.tar
       # loop for every tar
       - name: Upload image
         uses: actions/upload-artifact@v2
