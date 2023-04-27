@@ -22,13 +22,12 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: "7"
-
+      - run: "git branch --track main origin/main"
       # - uses: nrwl/nx-set-shas@v3
 
       - name: Install dependencies
         run: pnpm install
 
-      - run: git branch --track develop origin/develop
       - run: pnpm exec nx format:check
       - run: pnpm exec nx run-many -t lint --parallel=3
       - run: pnpm exec nx run-many -t test --parallel=3 --configuration=ci
