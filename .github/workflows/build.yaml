@@ -61,5 +61,5 @@ jobs:
           username: ${{ secrets.USERNAME }}
           port: ${{ secrets.PORT }}
           key: ${{ secrets.KEY }}
-          source: images
+          source: images/*.tar
           target: ~/docker/mcu-movies.sbfd.me
