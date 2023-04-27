@@ -1,9 +1,9 @@
 name: CI/CD
 on:
   push:
-    branches: [main]
+    branches: [develop]
   pull_request:
-    branches: [main]
+    branches: [develop]
   workflow_dispatch:
 jobs:
   build:
@@ -35,7 +35,7 @@ jobs:
       - run: pnpm exec nx run-many -t docker-build --parallel=3
 
       - name: Export image
-        run: docker image ls --format '{{.Repository}}' | xargs -I {} docker save {} -o {}.tar
+        run: docker image ls --format '{{.Repository}}' | awk '$1 ~ /^ *mcu-movies/' | xargs -I {} docker save {} -o {}.tar
       # loop for every tar
       - name: Upload image
         uses: actions/upload-artifact@v2
