@@ -39,10 +39,9 @@ jobs:
             name=$(echo $image | sed 's/\//-/g')
             docker save $image -o $name.tar
           done
-      # loop for every tar
-      - name: Upload image
-        uses: actions/upload-artifact@v2
+      - name: Upload images
+        uses: actions/upload-artifact@v3
         with:
-          name: image
+          name: images
           path: |
             *.tar
