@@ -22,3 +22,5 @@ RUN chown -R api:api .
 RUN npm --prefix api --omit=dev -f install
 
 CMD [ "node", "api" ]
+
+EXPOSE 3000
