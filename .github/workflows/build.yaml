@@ -70,6 +70,6 @@ jobs:
           port: ${{ secrets.PORT }}
           key: ${{ secrets.KEY }}
           script: |
-            ~/play.sh 
-            deploy-docker
+            ~/play.sh \
+            deploy-docker \
             -e DOMAIN=mcu-movies.sbfd.me
