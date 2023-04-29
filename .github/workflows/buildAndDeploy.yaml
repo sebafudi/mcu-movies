@@ -1,9 +1,10 @@
-name: CI/CD - main
+name: CI/CD - build and deploy
 on:
-  push:
-    branches: [main]
   pull_request:
-    branches: [main]
+    types: [closed]
+    branches:
+      - main
+      - develop
   workflow_dispatch:
 jobs:
   build:
@@ -51,6 +52,8 @@ jobs:
           path: docker-compose.yml
   deploy:
     needs: build
+    env:
+      DOMAIN: ${{ github.ref == 'refs/heads/develop' && 'dev-mcu-movies.sbfd.me' || 'mcu-movies.sbfd.me' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download images
@@ -71,7 +74,7 @@ jobs:
           port: ${{ secrets.PORT }}
           key: ${{ secrets.KEY }}
           source: "*.tar,docker-compose.yml"
-          target: ~/docker/mcu-movies.sbfd.me
+          target: ~/docker/${{ env.DOMAIN }}
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
@@ -82,6 +85,6 @@ jobs:
           script: |
             ~/play.sh \
             deploy-docker \
-            -e DOMAIN=mcu-movies.sbfd.me \
+            -e DOMAIN=${{ env.DOMAIN }} \
             -e CERT=sbfd.me.cf \
             -e SSL_ONLY=true

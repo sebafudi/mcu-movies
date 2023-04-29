@@ -1,9 +1,12 @@
-name: CI/CD - develop
+name: CI/CD - build docker artifacts
 on:
-  push:
-    branches: [develop]
   pull_request:
-    branches: [develop]
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - develop
   workflow_dispatch:
 jobs:
   build:
@@ -49,39 +52,3 @@ jobs:
         with:
           name: docker-compose
           path: docker-compose.yml
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download images
-        uses: actions/download-artifact@v3
-        with:
-          name: images
-          path: .
-      - name: Download docker-compose
-        uses: actions/download-artifact@v3
-        with:
-          name: docker-compose
-          path: .
-      - name: Upload images to host
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          port: ${{ secrets.PORT }}
-          key: ${{ secrets.KEY }}
-          source: "*.tar,docker-compose.yml"
-          target: ~/docker/dev-mcu-movies.sbfd.me
-      - name: Deploy
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          username: ${{ secrets.USERNAME }}
-          port: ${{ secrets.PORT }}
-          key: ${{ secrets.KEY }}
-          script: |
-            ~/play.sh \
-            deploy-docker \
-            -e DOMAIN=dev-mcu-movies.sbfd.me \
-            -e CERT=sbfd.me.cf \
-            -e SSL_ONLY=true
