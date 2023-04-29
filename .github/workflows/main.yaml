@@ -82,4 +82,6 @@ jobs:
           script: |
             ~/play.sh \
             deploy-docker \
-            -e DOMAIN=mcu-movies.sbfd.me
+            -e DOMAIN=mcu-movies.sbfd.me \
+            -e CERT=sbfd.me.cf \
+            -e SSL_ONLY=true
