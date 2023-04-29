@@ -1,4 +1,4 @@
-name: CI/CD
+name: CI/CD - develop
 on:
   push:
     branches: [develop]
@@ -71,7 +71,7 @@ jobs:
           port: ${{ secrets.PORT }}
           key: ${{ secrets.KEY }}
           source: "*.tar,docker-compose.yml"
-          target: ~/docker/mcu-movies.sbfd.me
+          target: ~/docker/dev-mcu-movies.sbfd.me
       - name: Deploy
         uses: appleboy/ssh-action@master
         with:
@@ -82,4 +82,4 @@ jobs:
           script: |
             ~/play.sh \
             deploy-docker \
-            -e DOMAIN=mcu-movies.sbfd.me
+            -e DOMAIN=dev-mcu-movies.sbfd.me

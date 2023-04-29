@@ -1,0 +1,85 @@
+name: CI/CD - main
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: "7"
+      - run: "git branch --track main origin/main"
+      # - uses: nrwl/nx-set-shas@v3
+
+      - name: Install dependencies
+        run: pnpm install
+
+      # - run: pnpm exec nx format:check
+      - run: pnpm exec nx run-many -t lint --parallel=3
+      - run: pnpm exec nx run-many -t test --parallel=3 --configuration=ci
+      - run: pnpm exec nx run-many -t build --parallel=3
+      - run: pnpm exec nx run-many -t docker-build --parallel=3
+
+      - run: |
+          for image in $(docker images --format "{{.Repository}}" | grep mcu-movies); do
+            name=$(echo $image | sed 's/\//-/g')
+            docker save $image -o $name.tar
+          done
+      - name: Upload images
+        uses: actions/upload-artifact@v3
+        with:
+          name: images
+          path: "*.tar"
+      - name: Upload docker-compose
+        uses: actions/upload-artifact@v3
+        with:
+          name: docker-compose
+          path: docker-compose.yml
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download images
+        uses: actions/download-artifact@v3
+        with:
+          name: images
+          path: .
+      - name: Download docker-compose
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-compose
+          path: .
+      - name: Upload images to host
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          source: "*.tar,docker-compose.yml"
+          target: ~/docker/mcu-movies.sbfd.me
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          script: |
+            ~/play.sh \
+            deploy-docker \
+            -e DOMAIN=mcu-movies.sbfd.me
