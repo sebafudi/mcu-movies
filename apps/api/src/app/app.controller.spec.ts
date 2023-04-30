@@ -3,6 +3,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 
+import { movies } from "./movies";
+
 describe("AppController", () => {
   let app: TestingModule;
 
@@ -15,14 +17,6 @@ describe("AppController", () => {
 
   describe("getData", () => {
     it('should return "Hello API"', () => {
-      const movies = [
-        { id: 1, title: "Iron Man", globalReleaseDate: new Date("2008-04-30") },
-        {
-          id: 2,
-          title: "The Incredible Hulk",
-          globalReleaseDate: new Date("2008-06-13"),
-        },
-      ];
       const appController = app.get<AppController>(AppController);
       expect(appController.getData()).toEqual({ list: movies });
     });
