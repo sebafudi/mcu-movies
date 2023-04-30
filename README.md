@@ -2,7 +2,11 @@
 
 Live production version: https://mcu-movies.sbfd.me
 
+API: https://mcu-movies.sbfd.me/api/movies
+
 Live dev version: https://dev-mcu-movies.sbfd.me
+
+API: https://dev-mcu-movies.sbfd.me/api/movies
 
 # Description
 
