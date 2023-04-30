@@ -1,4 +1,4 @@
-name: CI/CD - build docker artifacts
+name: CI/CD - build and deploy
 on:
   workflow_dispatch:
 jobs:
@@ -45,3 +45,41 @@ jobs:
         with:
           name: docker-compose
           path: docker-compose.yml
+  deploy:
+    needs: build
+    env:
+      DOMAIN: ${{ github.ref == 'refs/heads/develop' && 'dev-mcu-movies.sbfd.me' || 'mcu-movies.sbfd.me' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download images
+        uses: actions/download-artifact@v3
+        with:
+          name: images
+          path: .
+      - name: Download docker-compose
+        uses: actions/download-artifact@v3
+        with:
+          name: docker-compose
+          path: .
+      - name: Upload images to host
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          source: "*.tar,docker-compose.yml"
+          target: ~/docker/${{ env.DOMAIN }}
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          key: ${{ secrets.KEY }}
+          script: |
+            ~/play.sh \
+            deploy-docker \
+            -e DOMAIN=${{ env.DOMAIN }} \
+            -e CERT=sbfd.me.cf \
+            -e SSL_ONLY=true
