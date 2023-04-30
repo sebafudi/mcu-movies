@@ -4,6 +4,11 @@ Live production version: https://mcu-movies.sbfd.me
 
 Live dev version: https://dev-mcu-movies.sbfd.me
 
+# Description
+
+The app itself is a simple list of Marvel Cinematic Universe movies. It doesn't make any database calls, it's just a static list. <br />
+The purpose of this project is to learn how to deploy a full stack application to a server with CI/CD. <br />
+
 # Deployment infrastructure
 
 ### **Asgard** - _primary location_
