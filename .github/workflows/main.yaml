@@ -14,6 +14,7 @@ jobs:
       - name: Exit
         run: exit 0
   build:
+    needs: exit_if_not_merged
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -29,8 +30,8 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: "7"
-      - run: "git branch --track main origin/main"
-      - uses: nrwl/nx-set-shas@v3
+      #   - run: "git branch --track main origin/main"
+      #   - uses: nrwl/nx-set-shas@v3
 
       - name: Install dependencies
         run: pnpm install
