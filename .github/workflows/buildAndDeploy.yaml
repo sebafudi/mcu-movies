@@ -1,9 +1,15 @@
-name: CI/CD - build and deploy
+name: CI/CD - build and deploy on PR close
 on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - develop
   workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v3
         with:
@@ -18,8 +24,8 @@ jobs:
         uses: pnpm/action-setup@v2
         with:
           version: "7"
-      - run: "git branch --track main origin/main"
-      # - uses: nrwl/nx-set-shas@v3
+      #   - run: "git branch --track main origin/main"
+      #   - uses: nrwl/nx-set-shas@v3
 
       - name: Install dependencies
         run: pnpm install
@@ -48,7 +54,7 @@ jobs:
   deploy:
     needs: build
     env:
-      DOMAIN: ${{ github.ref == 'refs/heads/develop' && 'dev-mcu-movies.sbfd.me' || 'mcu-movies.sbfd.me' }}
+      DOMAIN: ${{ github.event.pull_request.head.ref == 'main' && 'mcu-movies.sbfd.me' || 'dev-mcu-movies.sbfd.me' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download images
