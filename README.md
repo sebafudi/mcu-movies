@@ -13,6 +13,25 @@ API: https://dev-mcu-movies.sbfd.me/api/movies
 The app itself is a simple list of Marvel Cinematic Universe movies. It doesn't make any database calls, it's just a static list. <br />
 The purpose of this project is to learn how to deploy a full stack application to a server with CI/CD. <br />
 
+# Run project locally
+
+Create **.env** file with the following content (change port if needed, domain doesn't matter - it's just used for traefik labels):
+
+```env
+PORT=8801
+DOMAIN=example.org
+```
+
+Then run:
+
+```
+pnpm install
+pnpm exec nx run-many --target=docker-build
+docker-compose up
+```
+
+It should be then available at `localhost:8801` and `localhost:8801/api/movies`
+
 # Deployment infrastructure
 
 ### **Asgard** - _primary location_
