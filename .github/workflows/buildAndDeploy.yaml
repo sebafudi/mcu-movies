@@ -54,7 +54,7 @@ jobs:
   deploy:
     needs: build
     env:
-      DOMAIN: ${{ github.ref == 'refs/heads/develop' && 'dev-mcu-movies.sbfd.me' || 'mcu-movies.sbfd.me' }}
+      DOMAIN: ${{ github.event.pull_request.head.ref == 'main' && 'mcu-movies.sbfd.me' || 'dev-mcu-movies.sbfd.me' }}
     runs-on: ubuntu-latest
     steps:
       - name: Download images
