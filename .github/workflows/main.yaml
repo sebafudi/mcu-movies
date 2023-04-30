@@ -1,7 +1,18 @@
-name: CI/CD - build and deploy
+name: CI/CD - build and deploy on PR close
 on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - develop
   workflow_dispatch:
 jobs:
+  exit_if_not_merged:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == false
+    steps:
+      - name: Exit
+        run: exit 0
   build:
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +30,7 @@ jobs:
         with:
           version: "7"
       - run: "git branch --track main origin/main"
-      # - uses: nrwl/nx-set-shas@v3
+      - uses: nrwl/nx-set-shas@v3
 
       - name: Install dependencies
         run: pnpm install

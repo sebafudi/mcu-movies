@@ -1,12 +1,5 @@
 name: CI/CD - build docker artifacts
 on:
-  pull_request:
-    branches:
-      - main
-      - develop
-  push:
-    branches:
-      - develop
   workflow_dispatch:
 jobs:
   build:
