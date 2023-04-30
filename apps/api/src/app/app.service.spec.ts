@@ -2,6 +2,8 @@ import { Test } from "@nestjs/testing";
 
 import { AppService } from "./app.service";
 
+import { movies } from "./movies";
+
 describe("AppService", () => {
   let service: AppService;
 
@@ -14,8 +16,8 @@ describe("AppService", () => {
   });
 
   describe("getData", () => {
-    it('should return "Hello API"', () => {
-      expect(service.getData()).toEqual({ message: "Hello API" });
+    it("should return list of objects of type movie", () => {
+      expect(service.getData()).toEqual({ list: movies });
     });
   });
 });

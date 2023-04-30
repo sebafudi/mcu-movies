@@ -3,6 +3,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 
+import { movies } from "./movies";
+
 describe("AppController", () => {
   let app: TestingModule;
 
@@ -16,7 +18,7 @@ describe("AppController", () => {
   describe("getData", () => {
     it('should return "Hello API"', () => {
       const appController = app.get<AppController>(AppController);
-      expect(appController.getData()).toEqual({ message: "Hello API" });
+      expect(appController.getData()).toEqual({ list: movies });
     });
   });
 });
