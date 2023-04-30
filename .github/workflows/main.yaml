@@ -7,15 +7,9 @@ on:
       - develop
   workflow_dispatch:
 jobs:
-  exit_if_not_merged:
-    runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == false
-    steps:
-      - name: Exit
-        run: exit 0
   build:
-    needs: exit_if_not_merged
     runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
     steps:
       - uses: actions/checkout@v3
         with:
