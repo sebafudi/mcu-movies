@@ -57,10 +57,6 @@ jobs:
       DOMAIN: ${{ github.event.pull_request.base.ref == 'main' && 'mcu-movies.sbfd.me' || 'dev-mcu-movies.sbfd.me' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJSON(github) }}
-        run: echo "$GITHUB_CONTEXT"
       - name: Download images
         uses: actions/download-artifact@v3
         with:
