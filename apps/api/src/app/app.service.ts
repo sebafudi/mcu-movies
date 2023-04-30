@@ -1,8 +1,10 @@
 import { Injectable } from "@nestjs/common";
 
+import { movies } from "./movies";
+
 @Injectable()
 export class AppService {
-  getData(): { message: string } {
-    return { message: "Hello API" };
+  getData(): { list: typeof movies } {
+    return { list: movies };
   }
 }
