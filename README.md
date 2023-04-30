@@ -112,3 +112,171 @@ If _Traefik_ with api goes down on `odin`, _nginx_ will return 502, and `heimdal
 - If `heimdall` goes down, the application will be unavailable. <br />
 - You can scale the application horizontally, but each deployment will set up frontend and backend.
 - If one of the containers with _api_ or _frontend_ goes down, it should be restarted by docker, but if it doesn't, Traefik will return 404, and _nginx_ won't redirect to the other server. <br />
+
+# Server configuration
+
+`kara` deploy-docker.yml
+
+```yml
+---
+- name: Check requirements
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Required vars
+      assert:
+        that:
+          - DOMAIN is defined
+          - CERT is defined
+          - SSL_ONLY is defined
+        fail_msg: Missing variables
+
+- name: Send docker images to remote hosts
+  hosts: web_secondary
+  tasks:
+    - name: Copy docker images and docker-compose to remote hosts
+      copy:
+        src: "{{ item }}"
+        dest: ~/docker/{{ DOMAIN }}/
+        mode: 0644
+      with_fileglob:
+        - ~/docker/{{ DOMAIN }}/*.tar
+        - ~/docker/{{ DOMAIN }}/docker-compose.yml
+
+    - name: Load docker images on remote hosts
+      shell: |
+        for file in ~/docker/{{ DOMAIN }}/*.tar; do
+          docker load -i $file
+        done
+      register: docker_load_status
+      changed_when: false
+      failed_when: docker_load_status.rc != 0
+
+    - name: Remove docker images from local machine
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_fileglob:
+        - ~/docker/{{ DOMAIN }}/*.tar
+      delegate_to: 127.0.0.1
+
+    - name: Check if nginx.conf for DOMAIN exists
+      stat:
+        path: ~/nginx/config/sites.d/{{ DOMAIN }}.conf
+      register: domain_conf_exists
+
+    - when: not domain_conf_exists.stat.exists
+      block:
+        - name: Get last used app port
+          shell: |
+            grep -oPRh ":88\d+" ~/nginx/config/* | \
+            grep -oP "\d+" | \
+            sort -nr | \
+            head -1
+          register: last_port
+          changed_when: false
+          failed_when: last_port.stdout == ''
+        - set_fact: app_port="{{ last_port.stdout|int + 1 }}"
+        - name: Create nginx config for DOMAIN
+          template:
+            src: ~/templates/nginx-domain-secondary.j2
+            dest: ~/nginx/config/sites.d/{{ DOMAIN }}.conf
+            mode: 0644
+        - name: Restart nginx
+          include_tasks: ~/tasks/reload-nginx-by-label.yml
+          vars:
+            label: "pl.mtps.nginx"
+
+    - when: domain_conf_exists.stat.exists
+      block:
+        - name: Get last used app port
+          shell: |
+            grep -oPRh ":88\d+" ~/nginx/config/sites.d/{{ DOMAIN }}.conf | \
+            grep -oP "\d+"
+          register: last_port
+          changed_when: false
+          failed_when: last_port.stdout == ''
+        - set_fact: app_port="{{ last_port.stdout }}"
+
+    - name: Run docker compose in ~/docker/{{ DOMAIN }}
+      docker_compose:
+        project_src: ~/docker/{{ DOMAIN }}
+      environment:
+        PORT: "{{ app_port }}"
+        DOMAIN: "{{ DOMAIN }}"
+
+- name: Register domain in nginx
+  hosts: web_primary
+  tasks:
+    - name: Check if nginx.conf for DOMAIN exists
+      stat:
+        path: ~/nginx/config/sites.d/{{ DOMAIN }}.conf
+      register: domain_conf_exists
+
+    - when: not domain_conf_exists.stat.exists
+      block:
+        - name: Create nginx config for DOMAIN
+          template:
+            src: ~/templates/nginx-domain-primary.j2
+            dest: ~/nginx/config/sites.d/{{ DOMAIN }}.conf
+            mode: 0644
+        - name: Reload nginx
+
+          include_tasks: ~/tasks/reload-nginx-by-label.yml
+          vars:
+            label: "pl.mtps.nginx"
+```
+
+`kara` nginx-domain-primary.j2
+
+```j2
+{% if SSL_ONLY %}
+server { server_name "{{ DOMAIN }}"; include redirect.conf; }
+{% endif %}
+
+server {
+	server_name {{ DOMAIN }};
+
+	location / {
+		proxy_pass http://web-secondary/;
+	}
+
+	{% if CERT is defined %}
+	include certs.d/{{ CERT }}.conf;
+	{% endif %}
+}
+```
+
+`kara` nginx-domain-secondary.j2 (nginx is hosted in docker container)
+
+```j2
+server {
+	listen 80;
+	server_name {{ DOMAIN }};
+
+	location / {
+		proxy_pass http://host.docker.internal:{{ app_port }}/;
+	}
+}
+```
+
+`heimdall` nginx config (will not paste the whole config, but some important snippets)
+
+```nginx
+    upstream web-secondary {
+        server odin.asgard.mtps.pl;
+        server bogdan.vanaheim.mtps.pl backup;
+    }
+
+    server {
+        server_name mcu-movies.sbfd.me;
+
+        location / {
+                proxy_pass http://web-secondary/;
+        }
+
+        listen 443 http2 ssl;
+        ssl_certificate .certs-cf/sebafudi.cert;
+        ssl_certificate_key .certs-cf/sebafudi.key;
+    }
+```
