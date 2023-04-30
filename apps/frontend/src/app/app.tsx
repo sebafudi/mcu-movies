@@ -19,12 +19,10 @@ export function App() {
     globalReleaseDate: string;
   };
 
-  // create a list of MovieCard components by mapping over the movies array
   const movieList = movies.map((movie: Movie) => {
     return (
       <MovieCard
         title={movie.title}
-        // convert date to a string
         releaseDate={new Date(movie.globalReleaseDate).toDateString()}
         key={movie.title}
       />
