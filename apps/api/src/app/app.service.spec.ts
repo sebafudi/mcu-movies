@@ -14,8 +14,16 @@ describe("AppService", () => {
   });
 
   describe("getData", () => {
-    it('should return "Hello API"', () => {
-      expect(service.getData()).toEqual({ message: "Hello API" });
+    it("should return list of objects of type movie", () => {
+      const movies = [
+        { id: 1, title: "Iron Man", globalReleaseDate: new Date("2008-04-30") },
+        {
+          id: 2,
+          title: "The Incredible Hulk",
+          globalReleaseDate: new Date("2008-06-13"),
+        },
+      ];
+      expect(service.getData()).toEqual({ list: movies });
     });
   });
 });
